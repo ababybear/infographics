@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Analytics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Black Terminal & Electric Neon Green Palette */
+        :root {
+            --bg-page: #000000;       /* Pure Black Background */
+            --surface: #0a0a0c;       /* Dark Gray Card Surface */
+            --text-main: #ffffff;     /* Pure White Text */
+            --text-sub: #a1a1aa;      /* Muted Gray Text */
+            --bears: #00ff66;         /* Light Electric Neon Green */
+            --sp500: #52525b;         /* Muted Gray for Benchmark */
+            --bullish: #00ff66;       /* Bullish Electric Green */
+            --border-dark: #18181b;   /* Subtle Dark Borders */
+        }
+
+        body {
+            /* Typewriter / Monospace Font */
+            font-family: 'Courier New', Courier, 'SFMono-Regular', Consolas, monospace;
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .dashboard {
+            background: var(--surface);
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 255, 102, 0.06); /* Bright neon outer glow */
+            border: 1px solid var(--border-dark);
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .header-metrics {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 14px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 16px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border-dark);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle neon green top border on hover */
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+        .metric-card:hover::before {
+            background: var(--bears);
+        }
+
+        .metric-label {
+            color: var(--text-sub);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            height: 18px;
+            white-space: nowrap;
+        }
+
+        .metric-label.bears::before { 
+            content: ""; 
+            display: inline-block; 
+            width: 8px; 
+            height: 8px; 
+            border-radius: 50%; 
+            background: var(--bears); 
+            box-shadow: 0 0 8px var(--bears); /* Neon dot glow */
+        }
+        
+        .metric-label.sp500::before { 
+            content: ""; 
+            display: inline-block; 
+            width: 8px; 
+            height: 8px; 
+            border-radius: 50%; 
+            background: var(--sp500); 
+        }
+
+        /* Scaled Mathematical Typography for Greek Math Symbols */
+        .math-symbol {
+            font-family: 'Cambria Math', 'Times New Roman', Times, serif;
+            font-style: italic;
+            font-size: 15px;
+            color: var(--text-main);
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        .metric-value {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.05em;
+        }
+
+        .bullish-text {
+            color: var(--bullish);
+            text-shadow: 0 0 12px rgba(0, 255, 102, 0.35); /* Neon text glow */
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+
+        @media (max-width: 850px) {
+            .header-metrics {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <div class="header-metrics">
+        <div class="metric-card">
+            <div class="metric-label bears">bears</div>
+            <div class="metric-value bullish-text">+9.9%</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label sp500">S&P 500</div>
+            <div class="metric-value bullish-text">+1.3%</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label math-symbol">&alpha;</div>
+            <div class="metric-value bullish-text">+8.6%</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label math-symbol">&beta;</div>
+            <div class="metric-value" style="color: var(--text-main);">0.45</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label math-symbol">&rho; <span style="font-family: inherit; font-style: normal; font-size: 11px; color: var(--text-sub);">(S&P)</span></div>
+            <div class="metric-value" style="color: var(--text-main);">0.41</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Sharpe</div>
+            <div class="metric-value bullish-text">3.85</div>
+        </div>
+    </div>
+    
+    <div class="chart-container">
+        <canvas id="performanceChart"></canvas>
+    </div>
+</div>
+
+<script>
+    Chart.defaults.font.family = "'Courier New', Courier, monospace";
+    Chart.defaults.color = '#71717a';
+    Chart.defaults.font.weight = '600';
+
+    const ctx = document.getElementById('performanceChart').getContext('2d');
+    
+    // Light Electric Neon Green Gradient
+    const greenGradient = ctx.createLinearGradient(0, 0, 0, 400);
+    greenGradient.addColorStop(0, 'rgba(0, 255, 102, 0.35)'); // Bright neon top
+    greenGradient.addColorStop(1, 'rgba(0, 255, 102, 0.0)');  // Fade to black
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jun 7', 'Jun 14', 'Jun 21', 'Jun 28', 'Jul 5', 'Jul 12', 'Jul 19', 'Jul 26', 'Aug 2', 'Aug 9', 'Aug 16', 'Aug 23', 'Aug 30', 'Sep 6', 'Sep 11'],
+            datasets: [
+                {
+                    label: 'bears',
+                    data: [1000000, 1008200, 1015400, 1012100, 1024500, 1035600, 1042300, 1050800, 1058200, 1065400, 1072900, 1085100, 1092400, 1097000, 1099000],
+                    borderColor: '#00ff66', // Electric Neon Green
+                    backgroundColor: greenGradient,
+                    fill: true,
+                    borderWidth: 3,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: '#000000',
+                    pointBorderColor: '#00ff66',
+                    pointBorderWidth: 2,
+                    tension: 0.4
+                },
+                {
+                    label: 'S&P 500',
+                    data: [1000000, 1002500, 1005800, 998400, 1004200, 1009100, 1012500, 1001200, 995400, 1003800, 1012900, 1018400, 1015200, 1008600, 1013000],
+                    borderColor: '#52525b', // Muted Gray
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    borderDash: [6, 6],
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: '#000000',
+                    pointBorderColor: '#52525b',
+                    pointBorderWidth: 2,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#0a0a0c',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: '#27272a',
+                    borderWidth: 1,
+                    padding: 14,
+                    titleFont: { size: 14, family: "'Courier New', Courier, monospace" },
+                    bodyFont: { size: 13, family: "'Courier New', Courier, monospace", weight: 'bold' },
+                    callbacks: {
+                        label: function(context) {
+                            let val = context.parsed.y;
+                            return context.dataset.label + ': $' + (val / 1000000).toFixed(3) + 'M';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { maxTicksLimit: 8 }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.05)',
+                        drawBorder: false,
+                        borderDash: [4, 4]
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + (value / 1000000).toFixed(2) + 'M';
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>
