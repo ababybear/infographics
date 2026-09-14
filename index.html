@@ -19,7 +19,7 @@
         }
 
         body {
-            /* Typewriter / Monospace Font */
+            /* Typewriter / Monospace Font Stack */
             font-family: 'Courier New', Courier, 'SFMono-Regular', Consolas, monospace;
             background-color: var(--bg-page);
             color: var(--text-main);
@@ -39,6 +39,7 @@
             border: 1px solid var(--border-dark);
             width: 100%;
             max-width: 1000px;
+            position: relative; /* Anchors the absolute positioned email */
         }
 
         .header-metrics {
@@ -132,6 +133,17 @@
             width: 100%;
         }
 
+        /* White Typewriter Footer Email - Placed Below Border */
+        .footer-email {
+            position: absolute;
+            bottom: -28px; /* Pushes it completely outside the dashboard box */
+            right: 0;
+            color: var(--text-main);
+            font-size: 12px;
+            opacity: 0.7;
+            letter-spacing: 0.5px;
+        }
+
         @media (max-width: 850px) {
             .header-metrics {
                 grid-template-columns: repeat(3, 1fr);
@@ -172,6 +184,9 @@
     <div class="chart-container">
         <canvas id="performanceChart"></canvas>
     </div>
+
+    <!-- Positioned absolutely to hang below the main dashboard border -->
+    <div class="footer-email">michal@the-bears.co</div>
 </div>
 
 <script>
